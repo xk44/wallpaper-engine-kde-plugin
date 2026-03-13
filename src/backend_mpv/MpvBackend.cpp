@@ -98,9 +98,7 @@ QString MpvObject::logfile() const { return getProperty("log-file").toString(); 
 
 int MpvObject::volume() const { return getProperty("volume").toInt(); }
 
-void MpvObject::setMute(const bool& mute) {
-    setProperty("aid", mute ? "no" : "auto");
-}
+void MpvObject::setMute(const bool& mute) { setProperty("aid", mute ? "no" : "auto"); }
 
 void MpvObject::setVolume(const int& volume) { setProperty("volume", volume); }
 
@@ -146,8 +144,7 @@ namespace mpv
 class MpvRender : public QObject, public QQuickRhiItemRenderer {
     Q_OBJECT
 public:
-    MpvRender(std::shared_ptr<MpvHandle> mpv)
-        : m_shared_mpv(mpv), m_mpv(mpv->handle) {}
+    MpvRender(std::shared_ptr<MpvHandle> mpv): m_shared_mpv(mpv), m_mpv(mpv->handle) {}
 
     virtual ~MpvRender() {
         _Q_DEBUG() << "destroyed";
@@ -168,18 +165,15 @@ signals:
     void inited();
 
 protected:
-    void initialize(QRhiCommandBuffer* cb) override {
-        Q_UNUSED(cb)
-    }
+    void initialize(QRhiCommandBuffer* cb) override { Q_UNUSED(cb) }
 
     void synchronize(QQuickRhiItem* item) override {
         MpvObject* mpv_obj = static_cast<MpvObject*>(item);
 
         if (! m_render_ctx) {
-            mpv_render_param params[] = {
-                { MPV_RENDER_PARAM_API_TYPE, (void*)MPV_RENDER_API_TYPE_SW },
-                { MPV_RENDER_PARAM_INVALID, nullptr }
-            };
+            mpv_render_param params[] = { { MPV_RENDER_PARAM_API_TYPE,
+                                            (void*)MPV_RENDER_API_TYPE_SW },
+                                          { MPV_RENDER_PARAM_INVALID, nullptr } };
             if (mpv_render_context_create(&m_render_ctx, m_mpv, params) >= 0) {
                 mpv_render_context_set_update_callback(m_render_ctx, on_mpv_redraw, this);
                 Q_EMIT this->inited();
@@ -218,13 +212,11 @@ protected:
         if (m_render_ctx && (setDirty(false) || sizeChanged)) {
             int size[] = { w, h };
 
-            mpv_render_param params[] = {
-                { MPV_RENDER_PARAM_SW_SIZE, size },
-                { MPV_RENDER_PARAM_SW_FORMAT, (void*)"rgb0" },
-                { MPV_RENDER_PARAM_SW_STRIDE, &stride },
-                { MPV_RENDER_PARAM_SW_POINTER, m_buffer.data },
-                { MPV_RENDER_PARAM_INVALID, nullptr }
-            };
+            mpv_render_param params[] = { { MPV_RENDER_PARAM_SW_SIZE, size },
+                                          { MPV_RENDER_PARAM_SW_FORMAT, (void*)"rgb0" },
+                                          { MPV_RENDER_PARAM_SW_STRIDE, &stride },
+                                          { MPV_RENDER_PARAM_SW_POINTER, m_buffer.data },
+                                          { MPV_RENDER_PARAM_INVALID, nullptr } };
 
             if (mpv_render_context_render(m_render_ctx, params) < 0) {
                 _Q_DEBUG() << "SW render failed";
@@ -243,8 +235,8 @@ protected:
             }
 
             // Upload frame to colorTexture
-            QByteArray data = QByteArray::fromRawData(
-                reinterpret_cast<const char*>(m_buffer.data), static_cast<qsizetype>(bufSize));
+            QByteArray data = QByteArray::fromRawData(reinterpret_cast<const char*>(m_buffer.data),
+                                                      static_cast<qsizetype>(bufSize));
 
             QRhiTextureSubresourceUploadDescription desc(data);
             desc.setDataStride((quint32)stride);
@@ -270,7 +262,7 @@ private:
     struct AlignedBuffer {
         uint8_t* data { nullptr };
         size_t   size { 0 };
-        void resize(size_t newSize) {
+        void     resize(size_t newSize) {
             if (size == newSize) return;
             std::free(data);
             data = static_cast<uint8_t*>(std::aligned_alloc(64, newSize));
@@ -278,15 +270,15 @@ private:
             if (data) std::memset(data, 0, size);
         }
         ~AlignedBuffer() { std::free(data); }
-        AlignedBuffer() = default;
-        AlignedBuffer(const AlignedBuffer&) = delete;
+        AlignedBuffer()                                = default;
+        AlignedBuffer(const AlignedBuffer&)            = delete;
         AlignedBuffer& operator=(const AlignedBuffer&) = delete;
     };
 
-    AlignedBuffer        m_buffer;
-    int                  m_bufWidth { 0 };
-    int                  m_bufHeight { 0 };
-    std::atomic<bool>    m_dirty { false };
+    AlignedBuffer     m_buffer;
+    int               m_bufWidth { 0 };
+    int               m_bufHeight { 0 };
+    std::atomic<bool> m_dirty { false };
 };
 
 } // namespace mpv
