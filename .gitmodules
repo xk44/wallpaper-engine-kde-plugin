@@ -1,0 +1,15 @@
+[submodule "src/backend_scene/third_party/Eigen"]
+	path = src/backend_scene/third_party/Eigen
+	url = https://gitlab.com/libeigen/eigen.git
+[submodule "src/backend_scene/third_party/SPIRV-Reflect"]
+	path = src/backend_scene/third_party/SPIRV-Reflect
+	url = https://github.com/KhronosGroup/SPIRV-Reflect.git
+[submodule "src/backend_scene/third_party/glslang"]
+	path = src/backend_scene/third_party/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "src/backend_scene/third_party/miniaudio"]
+	path = src/backend_scene/third_party/miniaudio
+	url = https://github.com/mackron/miniaudio.git
+[submodule "src/backend_scene/third_party/nlohmann"]
+	path = src/backend_scene/third_party/nlohmann
+	url = https://github.com/nlohmann/json.git
