@@ -143,7 +143,7 @@ After installing via any method:
 
 ## Requirements
 - KDE Plasma 6
-- Qt 6
+- Qt 6.7+ (requires `QQuickRhiItem`)
 - Vulkan 1.1+
 - C++20 (GCC 10+)
 - [Vulkan driver](https://wiki.archlinux.org/title/Vulkan#Installation) installed (AMD users: use RADV)

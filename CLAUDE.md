@@ -45,7 +45,8 @@ cmake --build build
   - `TTYSwitchMonitor` — TTY switch monitoring via D-Bus
 
 - **src/backend_mpv/** — MPV backend for video wallpapers
-  - Uses libmpv for playback
+  - Uses libmpv with SW render API (`MPV_RENDER_API_TYPE_SW`) + Qt RHI (`QQuickRhiItem`)
+  - Hardware decode (VAAPI/nvdec) with software render output — no OpenGL dependency
   - Static library `mpvbackend`
 
 - **src/backend_scene/** — Vulkan renderer for Scene wallpapers
@@ -117,4 +118,4 @@ Install `vulkan-validation-layers` for Vulkan debugging.
 
 - C++20
 - Formatting: `.clang-format` (4 spaces, 100 character line width)
-- Qt6 / KF6 / Plasma 6
+- Qt 6.7+ / KF6 / Plasma 6 (requires `QQuickRhiItem`)

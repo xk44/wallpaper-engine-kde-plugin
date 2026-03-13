@@ -2,10 +2,9 @@
 #define MPVRENDERER_H_
 
 #include <mpv/client.h>
-#include <mpv/render_gl.h>
+#include <mpv/render.h>
 
-#include <QtQuick/QQuickItem>
-#include <QtQuick/QQuickFramebufferObject>
+#include <QtQuick/QQuickRhiItem>
 #include <QtCore/QLoggingCategory>
 #include <memory>
 
@@ -24,7 +23,7 @@ struct MpvHandle {
 
 class MpvRender;
 
-class MpvObject : public QQuickFramebufferObject {
+class MpvObject : public QQuickRhiItem {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
@@ -36,11 +35,9 @@ class MpvObject : public QQuickFramebufferObject {
     friend class MpvRender;
 
 public:
-    static void on_update(void* ctx);
-
     explicit MpvObject(QQuickItem* parent = nullptr);
     virtual ~MpvObject();
-    Renderer* createRenderer() const override;
+    QQuickRhiItemRenderer* createRenderer() override;
 
     enum Status
     {
