@@ -1,4 +1,4 @@
-# Wallpaper Engine for KDE Plasma 6 (cachywp fork)
+# Wallpaper Engine for KDE Plasma 6
 
 A wallpaper plugin that integrates [Wallpaper Engine](https://store.steampowered.com/app/431960/Wallpaper_Engine) wallpapers into KDE Plasma 6. Scene (2D Vulkan), Video (mpv or QtMultimedia), and Web backends.
 
