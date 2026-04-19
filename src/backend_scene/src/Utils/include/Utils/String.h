@@ -73,7 +73,8 @@ template<typename T, std::size_t N>
 bool Convert(const std::string& str, std::array<T, N>& target) {
     std::vector<std::string> str_list = SpliteString(str, ' ');
     if (N != str_list.size()) {
-        throw WrongSizeExp();
+        LOG_ERROR("StrToArray: expected %zu elements, got %zu", N, str_list.size());
+        return false;
     }
     auto StrConv = [](std::string str) {
         T num {};

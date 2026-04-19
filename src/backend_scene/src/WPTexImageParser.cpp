@@ -189,7 +189,7 @@ std::shared_ptr<Image> WPTexImageParser::Parse(const std::string& name) {
         mipmaps.resize(mipmap_count);
         // load image
         for (usize i_mipmap = 0; i_mipmap < mipmap_count; i_mipmap++) {
-            auto& mipmap  = mipmaps.at(i_mipmap);
+            auto& mipmap  = mipmaps[i_mipmap];
             mipmap.width  = file.ReadInt32();
             mipmap.height = file.ReadInt32();
             if (i_mipmap == 0) {
@@ -274,7 +274,7 @@ ImageHeader WPTexImageParser::ParseHeader(const std::string& name) {
                 int32_t width  = file.ReadInt32();
                 int32_t height = file.ReadInt32();
                 if (i_mipmap == 0) {
-                    imageDatas.at(i_image) = { (float)width, (float)height };
+                    imageDatas[i_image] = { (float)width, (float)height };
                     header.mipmap_pow2     = algorism::IsPowOfTwo((u32)(width * height));
                 }
                 if (header.extraHeader["texb"].val > 1) {
@@ -310,8 +310,8 @@ ImageHeader WPTexImageParser::ParseHeader(const std::string& name) {
                 header.isSprite = false;
                 break;
             }
-            float spriteWidth  = imageDatas.at((usize)sf.imageId)[0];
-            float spriteHeight = imageDatas.at((usize)sf.imageId)[1];
+            float spriteWidth  = imageDatas[(usize)sf.imageId][0];
+            float spriteHeight = imageDatas[(usize)sf.imageId][1];
 
             sf.frametime = file.ReadFloat();
             if (texs == 1) {

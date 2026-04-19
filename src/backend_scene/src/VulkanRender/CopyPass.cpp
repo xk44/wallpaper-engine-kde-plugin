@@ -17,7 +17,7 @@ void CopyPass::prepare(Scene& scene, const Device& device, RenderingResources& r
         return;
     }
     if (scene.renderTargets.count(m_desc.dst) == 0) {
-        auto& rt                                   = scene.renderTargets.at(m_desc.src);
+        auto& rt                                   = scene.renderTargets[m_desc.src];
         scene.renderTargets[m_desc.dst]            = rt;
         scene.renderTargets[m_desc.dst].allowReuse = true;
     }
@@ -30,7 +30,7 @@ void CopyPass::prepare(Scene& scene, const Device& device, RenderingResources& r
 
         ImageParameters img;
         if (IsSpecTex(tex_name)) {
-            auto& rt  = scene.renderTargets.at(tex_name);
+            auto& rt  = scene.renderTargets[tex_name];
             auto  opt = device.tex_cache().Query(tex_name, ToTexKey(rt), ! rt.allowReuse);
             if (opt.has_value())
                 img = opt.value();

@@ -6,7 +6,10 @@
 
 #include <QtQuick/QQuickRhiItem>
 #include <QtCore/QLoggingCategory>
+#include <QtCore/QVariantMap>
+#include <QtCore/QTimer>
 #include <memory>
+#include <atomic>
 
 #include "qthelper.hpp"
 
@@ -31,6 +34,9 @@ class MpvObject : public QQuickRhiItem {
     Q_PROPERTY(QString logfile READ logfile WRITE setLogfile)
     Q_PROPERTY(int volume READ volume WRITE setVolume)
     Q_PROPERTY(QString hwdec READ hwdec WRITE setHwdec)
+    Q_PROPERTY(int fpsLimit READ fpsLimit WRITE setFpsLimit NOTIFY fpsLimitChanged)
+    Q_PROPERTY(QString renderPath READ renderPath NOTIFY renderPathChanged)
+    Q_PROPERTY(double renderScale READ renderScale WRITE setRenderScale NOTIFY renderScaleChanged)
 
     friend class MpvRender;
 
@@ -58,6 +64,13 @@ public:
     void    setVolume(const int& volume);
     QString hwdec() const;
     void    setHwdec(const QString& hwdec);
+    int     fpsLimit() const;
+    void    setFpsLimit(int limit);
+    QString renderPath() const;
+    double  renderScale() const;
+    void    setRenderScale(double scale);
+
+    Q_INVOKABLE QVariantMap debugMetrics() const;
 
 public slots:
     void play();
@@ -75,17 +88,36 @@ signals:
     void statusChanged();
     void sourceChanged();
     void firstFrame();
+    void fpsLimitChanged();
+    void renderPathChanged();
+    void renderScaleChanged();
 
 private:
     bool    inited = false;
     QUrl    m_source;
     Status  m_status = Stopped;
-    QString m_hwdec { "auto" };
+    QString m_hwdec { "auto-copy" };
+    int     m_fpsLimit { 0 };      // 0 = no limit (render at source fps)
+    QString m_renderPath { "none" };
+    double  m_renderScale { 1.0 }; // 1.0 = native, 0.5 = half res
+
+    // Metrics shared from render thread (atomics for lock-free access)
+    struct Metrics {
+        std::atomic<uint64_t> frameCount { 0 };
+        std::atomic<uint64_t> droppedFrames { 0 };
+        std::atomic<uint64_t> dirtyUpdates { 0 };
+        std::atomic<int64_t>  lastRenderNs { 0 };
+        std::atomic<int64_t>  lastUploadNs { 0 };     // SW only
+        std::atomic<int64_t>  lastAlphaFixNs { 0 };   // SW only
+    };
+    std::shared_ptr<Metrics> m_metrics { std::make_shared<Metrics>() };
 
 private:
     mpv_handle*                m_mpv { nullptr };
     std::shared_ptr<MpvHandle> m_shared_mpv { nullptr };
     bool                       m_first_frame { true };
+    QTimer*                    m_kickstartTimer { nullptr };
+    int                        m_kickstartTicks { 0 };
 };
 } // namespace mpv
 

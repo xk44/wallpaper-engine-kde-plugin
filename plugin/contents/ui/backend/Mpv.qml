@@ -59,11 +59,58 @@ Item{
         mute: background.mute
         volume: 0
         hwdec: background.mpvHwdec
+        fpsLimit: background.mpvFpsLimit
+        renderScale: background.mpvRenderScale
         Connections {
             ignoreUnknownSignals: true
             onFirstFrame: {
                 background.sig_backendFirstFrame('mpv');
             }
+        }
+    }
+
+    // Debug HUD — shown when mpvStats is enabled
+    Rectangle {
+        id: debugHud
+        visible: videoItem.stats
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 8
+        width: debugText.implicitWidth + 16
+        height: debugText.implicitHeight + 12
+        color: "#CC000000"
+        radius: 4
+
+        property int tick: 0
+
+        function formatMetrics() {
+            var m = player.debugMetrics();
+            var lines = "path: " + m.renderPath
+                + "\nscale: " + m.renderScale.toFixed(2)
+                + "\nframes: " + m.frameCount
+                + "  dropped: " + m.droppedFrames
+                + "\nrender: " + m.lastRenderMs.toFixed(2) + " ms";
+            if (m.renderPath === "sw-fallback") {
+                lines += "\nalpha: " + m.lastAlphaFixMs.toFixed(2)
+                    + " ms  upload: " + m.lastUploadMs.toFixed(2) + " ms";
+            }
+            return lines;
+        }
+
+        Text {
+            id: debugText
+            anchors.centerIn: parent
+            color: "#00FF00"
+            font.family: "monospace"
+            font.pixelSize: 12
+            text: debugHud.tick >= 0 ? debugHud.formatMetrics() : ""
+        }
+
+        Timer {
+            running: debugHud.visible
+            interval: 500
+            repeat: true
+            onTriggered: debugHud.tick++
         }
     }
     Component.onCompleted:{

@@ -446,8 +446,14 @@ void VulkanRender::Impl::UpdateCameraFillMode(wallpaper::Scene&   scene,
     if (width == 0) return;
     double sw = scene.ortho[0], sh = scene.ortho[1];
     double fboAspect = width / (double)height, sAspect = sw / sh;
-    auto&  gCam    = *scene.cameras.at("global");
-    auto&  gPerCam = *scene.cameras.at("global_perspective");
+    auto gCam_it    = scene.cameras.find("global");
+    auto gPerCam_it = scene.cameras.find("global_perspective");
+    if (gCam_it == scene.cameras.end() || gPerCam_it == scene.cameras.end()) {
+        LOG_ERROR("missing global or global_perspective camera");
+        return;
+    }
+    auto& gCam    = *gCam_it->second;
+    auto& gPerCam = *gPerCam_it->second;
     // assum cam
     switch (fillmode) {
     case FillMode::STRETCH:
@@ -517,7 +523,7 @@ void VulkanRender::Impl::compileRenderGraph(Scene& scene, rg::RenderGraph& rg) {
                    m_passes.begin(),
                    [&rg](auto& id, auto& texs) {
                        auto* pass = rg.getPass(id);
-                       assert(pass != nullptr);
+                       if (pass == nullptr) return static_cast<VulkanPass*>(nullptr);
                        VulkanPass* vpass = static_cast<VulkanPass*>(pass);
                        // LOG_INFO("----release tex");
                        for (auto& tex : texs) {
@@ -527,6 +533,7 @@ void VulkanRender::Impl::compileRenderGraph(Scene& scene, rg::RenderGraph& rg) {
                        return vpass;
                    });
 
+    std::erase(m_passes, nullptr);
     m_passes.insert(m_passes.begin(), m_prepass.get());
     m_passes.push_back(m_finpass.get());
 

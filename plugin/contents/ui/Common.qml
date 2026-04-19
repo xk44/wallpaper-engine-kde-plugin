@@ -26,6 +26,20 @@ QtObject {
         QtMultimedia,
         Mpv
     }
+    enum QualityTier {
+        Custom,
+        LowPower,
+        Balanced,
+        High,
+        Native
+    }
+    // Tier presets: { fps, mpvScale, sceneScale }. Custom is sentinel — leaves cfg as-is.
+    readonly property var qualityTierPresets: ({
+        1: { fps: 10, mpvScale: 0.50, sceneScale: 0.50 }, // LowPower
+        2: { fps: 15, mpvScale: 0.75, sceneScale: 0.75 }, // Balanced
+        3: { fps: 25, mpvScale: 1.00, sceneScale: 0.85 }, // High
+        4: { fps: 30, mpvScale: 1.00, sceneScale: 1.00 }  // Native
+    })
 
     readonly property string version: '0.6.0'
 

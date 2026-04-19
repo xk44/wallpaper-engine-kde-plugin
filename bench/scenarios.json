@@ -1,0 +1,96 @@
+{
+  "_comment": "Benchmark scenario definitions for wallpaper-engine-kde-plugin. Each scenario defines a wallpaper type, target resolution/fps, and expected performance bounds.",
+  "scenarios": [
+    {
+      "id": "video-1080p30",
+      "name": "1080p 30fps video",
+      "type": "video",
+      "description": "Baseline video wallpaper: 1080p, 30fps, mpv backend",
+      "resolution": [1920, 1080],
+      "targetFps": 30,
+      "duration_s": 30,
+      "backend": "mpv",
+      "thresholds": {
+        "max_cpu_percent": 5.0,
+        "max_frame_time_ms": 40.0,
+        "max_dropped_pct": 1.0
+      }
+    },
+    {
+      "id": "video-4k60",
+      "name": "4K 60fps video",
+      "type": "video",
+      "description": "Stress test: 4K, 60fps, mpv backend with hwdec",
+      "resolution": [3840, 2160],
+      "targetFps": 60,
+      "duration_s": 30,
+      "backend": "mpv",
+      "thresholds": {
+        "max_cpu_percent": 15.0,
+        "max_frame_time_ms": 20.0,
+        "max_dropped_pct": 2.0
+      }
+    },
+    {
+      "id": "scene-light-2d",
+      "name": "Light 2D scene",
+      "type": "scene",
+      "description": "Simple 2D scene with few objects, low particle count",
+      "resolution": [1920, 1080],
+      "targetFps": 30,
+      "duration_s": 30,
+      "thresholds": {
+        "max_cpu_percent": 10.0,
+        "max_frame_time_ms": 40.0
+      }
+    },
+    {
+      "id": "scene-heavy-particle",
+      "name": "Heavy particle scene",
+      "type": "scene",
+      "description": "Scene with heavy particle systems, multiple emitters",
+      "resolution": [1920, 1080],
+      "targetFps": 30,
+      "duration_s": 30,
+      "thresholds": {
+        "max_cpu_percent": 25.0,
+        "max_frame_time_ms": 50.0
+      }
+    },
+    {
+      "id": "web-static",
+      "name": "Web wallpaper (no WebGL)",
+      "type": "web",
+      "description": "Web wallpaper without WebGL, basic HTML/CSS animation",
+      "resolution": [1920, 1080],
+      "targetFps": 30,
+      "duration_s": 30,
+      "thresholds": {
+        "max_cpu_percent": 15.0
+      }
+    },
+    {
+      "id": "web-webgl",
+      "name": "Web wallpaper (WebGL)",
+      "type": "web",
+      "description": "Web wallpaper with WebGL rendering",
+      "resolution": [1920, 1080],
+      "targetFps": 30,
+      "duration_s": 30,
+      "thresholds": {
+        "max_cpu_percent": 25.0
+      }
+    },
+    {
+      "id": "idle-baseline",
+      "name": "Idle baseline (no wallpaper)",
+      "type": "none",
+      "description": "Regression target: plasmashell CPU with plugin loaded but no active wallpaper",
+      "resolution": [1920, 1080],
+      "duration_s": 30,
+      "thresholds": {
+        "max_cpu_percent": 1.0
+      }
+    }
+  ]
+}

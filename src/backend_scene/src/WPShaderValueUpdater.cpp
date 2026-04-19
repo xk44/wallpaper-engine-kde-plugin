@@ -6,6 +6,7 @@
 #include "SpecTexs.hpp"
 #include "Core/ArrayHelper.hpp"
 #include "Utils/Algorism.h"
+#include "Utils/Logging.h"
 
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -89,7 +90,13 @@ void WPShaderValueUpdater::UpdateUniforms(SceneNode* pNode, sprite_map_t& sprite
     const SceneCamera* camera;
     std::string_view   cam_name = pNode->Camera();
     if (! pNode->Camera().empty()) {
-        camera = m_scene->cameras.at(cam_name.data()).get();
+        auto cam_it = m_scene->cameras.find(std::string(cam_name));
+        if (cam_it == m_scene->cameras.end()) {
+            LOG_ERROR("camera '%s' not found, using active camera", cam_name.data());
+            camera = m_scene->activeCamera;
+        } else {
+            camera = cam_it->second.get();
+        }
     } else
         camera = m_scene->activeCamera;
 
@@ -100,7 +107,7 @@ void WPShaderValueUpdater::UpdateUniforms(SceneNode* pNode, sprite_map_t& sprite
     // auto& shadervs = material->customShader.updateValueList;
     // const auto& valueSet = material->customShader.valueSet;
 
-    assert(exists(m_nodeUniformInfoMap, pNode));
+    if (! exists(m_nodeUniformInfoMap, pNode)) return;
     const auto& info = m_nodeUniformInfoMap[pNode];
 
     bool hasNodeData = exists(m_nodeDataMap, pNode);

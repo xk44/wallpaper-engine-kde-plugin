@@ -28,6 +28,7 @@ ColumnLayout {
     property alias  cfg_Fps:                 settingPage.cfg_Fps
     property alias  cfg_Volume:              settingPage.cfg_Volume
     property alias  cfg_MpvStats:            settingPage.cfg_MpvStats
+    property alias  cfg_SceneStats:          settingPage.cfg_SceneStats
     property alias  cfg_Speed:               settingPage.cfg_Speed
     property alias  cfg_MuteAudio:           settingPage.cfg_MuteAudio
     property alias  cfg_MouseInput:          settingPage.cfg_MouseInput
@@ -39,6 +40,11 @@ ColumnLayout {
     property alias  cfg_PauseOnBatPower:     settingPage.cfg_PauseOnBatPower
     property alias  cfg_PauseBatPercent:     settingPage.cfg_PauseBatPercent
     property alias  cfg_PauseOnGamemode:     settingPage.cfg_PauseOnGamemode
+    property alias  cfg_MpvFpsLimit:          settingPage.cfg_MpvFpsLimit
+    property alias  cfg_MpvHwdec:            settingPage.cfg_MpvHwdec
+    property alias  cfg_MpvRenderScale:      settingPage.cfg_MpvRenderScale
+    property alias  cfg_SceneRenderScale:    settingPage.cfg_SceneRenderScale
+    property alias  cfg_QualityTier:         settingPage.cfg_QualityTier
     property int    cfg_DisplayMode
     property int    cfg_PauseMode
     property int    cfg_VideoBackend

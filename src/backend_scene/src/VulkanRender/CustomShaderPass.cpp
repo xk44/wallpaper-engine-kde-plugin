@@ -110,7 +110,7 @@ void CustomShaderPass::prepare(Scene& scene, const Device& device, RenderingReso
         ImageSlotsRef img_slots;
         if (IsSpecTex(tex_name)) {
             if (scene.renderTargets.count(tex_name) == 0) continue;
-            auto& rt  = scene.renderTargets.at(tex_name);
+            auto& rt  = scene.renderTargets[tex_name];
             auto  opt = device.tex_cache().Query(tex_name, ToTexKey(rt), ! rt.allowReuse);
             if (! opt.has_value()) continue;
             img_slots.slots = { opt.value() };
@@ -126,8 +126,10 @@ void CustomShaderPass::prepare(Scene& scene, const Device& device, RenderingReso
     }
     {
         auto& tex_name = m_desc.output;
-        assert(IsSpecTex(tex_name));
-        assert(scene.renderTargets.count(tex_name) > 0);
+        if (! IsSpecTex(tex_name) || scene.renderTargets.count(tex_name) == 0) {
+            LOG_ERROR("output tex '%s' not a valid render target", tex_name.c_str());
+            return;
+        }
         auto& rt = scene.renderTargets.at(tex_name);
         if (auto opt = device.tex_cache().Query(tex_name, ToTexKey(rt), ! rt.allowReuse);
             opt.has_value()) {

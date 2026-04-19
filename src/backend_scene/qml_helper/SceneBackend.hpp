@@ -3,6 +3,7 @@
 #include <QtQuick/QQuickFramebufferObject>
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QTimer>
+#include <QtCore/QVariantMap>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QHoverEvent>
 
@@ -20,6 +21,8 @@ class SceneObject : public QQuickItem {
     Q_PROPERTY(int fps READ fps WRITE setFps NOTIFY fpsChanged)
     Q_PROPERTY(int fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(float speed READ speed WRITE setSpeed NOTIFY speedChanged)
+    Q_PROPERTY(
+        float renderScale READ renderScale WRITE setRenderScale NOTIFY renderScaleChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ muted WRITE setMuted)
     Q_PROPERTY(QString userProperties READ userProperties WRITE setUserProperties NOTIFY
@@ -44,6 +47,7 @@ public:
     int     fps() const;
     int     fillMode() const;
     float   speed() const;
+    float   renderScale() const;
     float   volume() const;
     bool    muted() const;
     QString userProperties() const;
@@ -51,6 +55,7 @@ public:
     void setFps(int);
     void setFillMode(int);
     void setSpeed(float);
+    void setRenderScale(float);
     void setVolume(float);
     void setMuted(bool);
     void setUserProperties(const QString&);
@@ -62,6 +67,7 @@ public:
 
     Q_INVOKABLE void setAcceptMouse(bool);
     Q_INVOKABLE void setAcceptHover(bool);
+    Q_INVOKABLE QVariantMap debugMetrics() const;
 
 protected:
     void mousePressEvent(QMouseEvent* event) override;
@@ -78,6 +84,7 @@ signals:
     void fpsChanged();
     void fillModeChanged();
     void speedChanged();
+    void renderScaleChanged();
     void volumeChanged();
     void userPropertiesChanged();
     void firstFrame();
@@ -89,9 +96,11 @@ private:
     int     m_fps { 15 };
     int     m_fillMode { FillMode::ASPECTCROP };
     float   m_speed { 1.0f };
+    float   m_renderScale { 1.0f };
     float   m_volume { 1.0f };
     bool    m_muted { false };
     QString m_userProperties;
+    bool    m_renderScaleDirty { false };
 
 public:
     static void on_update(void* ctx);

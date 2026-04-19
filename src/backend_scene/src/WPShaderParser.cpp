@@ -163,7 +163,7 @@ inline void ParseWPShader(const std::string& src, WPShaderInfo* pWPShaderInfo,
 
                     } else {
                         if (sv_json.contains("default")) {
-                            auto        value = sv_json.at("default");
+                            auto        value = sv_json["default"];
                             ShaderValue sv;
                             name = defines.back();
                             if (value.is_string()) {

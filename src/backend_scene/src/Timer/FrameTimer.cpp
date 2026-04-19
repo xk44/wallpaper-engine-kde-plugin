@@ -66,6 +66,7 @@ void FrameTimer::FrameEnd() {
     auto now = steady_clock::now();
     AddFrametime(duration_cast<microseconds>(now - m_clock));
     UpdateFrametime();
+    m_frame_count.fetch_add(1, std::memory_order_relaxed);
 
     i32 expected = m_frame_busy_count.load();
     while (expected > 0) {

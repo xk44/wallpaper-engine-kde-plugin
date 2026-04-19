@@ -1,9 +1,13 @@
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml Core DBus)
 
-add_subdirectory(backend_mpv)
+if(BUILD_MPV)
+	add_subdirectory(backend_mpv)
+endif()
 
-SET(BUILD_QML ON CACHE BOOL "")
-add_subdirectory(backend_scene)
+if(BUILD_SCENE)
+	SET(BUILD_QML ON CACHE BOOL "")
+	add_subdirectory(backend_scene)
+endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -20,15 +24,23 @@ add_library(${PROJECT_NAME}
 	qmldir
 )
 
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}
 	PRIVATE
 	Qt::Quick
-	Qt::Qml 
-	mpvbackend
-	wescene-renderer-qml
+	Qt::Qml
 	Qt::Core
 	Qt::DBus
 )
+
+if(BUILD_MPV)
+	target_link_libraries(${PROJECT_NAME} PRIVATE mpvbackend)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_MPV)
+endif()
+
+if(BUILD_SCENE)
+	target_link_libraries(${PROJECT_NAME} PRIVATE wescene-renderer-qml)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE BUILD_SCENE)
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(${PROJECT_NAME}
                        PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")

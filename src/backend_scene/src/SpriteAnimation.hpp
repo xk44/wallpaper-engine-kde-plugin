@@ -25,15 +25,19 @@ struct SpriteFrame {
 class SpriteAnimation {
 public:
     const auto& GetAnimateFrame(double newtime) {
+        if (m_frames.empty()) return m_emptyFrame;
         if ((m_remainTime -= newtime) < 0.0f) {
             SwitchToNext();
-            const auto& frame = m_frames.at((usize)m_curFrame);
+            const auto& frame = m_frames[(usize)m_curFrame];
             m_remainTime      = frame.frametime;
         }
-        const auto& frame = m_frames.at((usize)m_curFrame);
+        const auto& frame = m_frames[(usize)m_curFrame];
         return frame;
     }
-    const auto& GetCurFrame() const { return m_frames.at((usize)m_curFrame); }
+    const auto& GetCurFrame() const {
+        if (m_frames.empty()) return m_emptyFrame;
+        return m_frames[(usize)m_curFrame];
+    }
     void        AppendFrame(const SpriteFrame& frame) { m_frames.push_back(frame); }
 
     usize numFrames() const { return m_frames.size(); }
@@ -45,8 +49,9 @@ private:
         else
             m_curFrame++;
     }
-    idx    m_curFrame { 0 };
-    double m_remainTime { 0 };
+    static inline const SpriteFrame m_emptyFrame {};
+    idx                             m_curFrame { 0 };
+    double                          m_remainTime { 0 };
 
     std::vector<SpriteFrame> m_frames;
 };

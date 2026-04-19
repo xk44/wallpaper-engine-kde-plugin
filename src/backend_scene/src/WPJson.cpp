@@ -46,7 +46,7 @@ inline bool _GetJsonValue(const nlohmann::json&                  json,
     nlohmann::json resolved = ResolveUserProperty(json);
 
     const auto* pjson = &resolved;
-    if (resolved.contains("value")) pjson = &resolved.at("value");
+    if (resolved.contains("value")) pjson = &resolved["value"];
     const auto& njson = *pjson;
     if (njson.is_number()) {
         value = { njson.get<Tv>() };
@@ -64,7 +64,7 @@ inline bool _GetJsonValue(const nlohmann::json& json, T& value) {
     nlohmann::json resolved = ResolveUserProperty(json);
 
     if (resolved.contains("value"))
-        value = resolved.at("value").get<T>();
+        value = resolved["value"].get<T>();
     else
         value = resolved.get<T>();
     return true;

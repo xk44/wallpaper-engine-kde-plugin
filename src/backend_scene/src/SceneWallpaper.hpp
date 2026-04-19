@@ -39,6 +39,15 @@ public:
     void pause();
     void mouseInput(double x, double y);
 
+    // Debug metrics (thread-safe, reads atomics from render thread)
+    struct Metrics {
+        uint64_t frameCount { 0 };
+        double   frameTimeMs { 0.0 };
+        uint16_t targetFps { 0 };
+        bool     running { false };
+    };
+    Metrics debugMetrics() const;
+
     void setPropertyBool(std::string_view, bool);
     void setPropertyInt32(std::string_view, int32_t);
     void setPropertyFloat(std::string_view, float);

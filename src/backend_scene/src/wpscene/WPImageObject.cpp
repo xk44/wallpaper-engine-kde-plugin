@@ -120,9 +120,9 @@ bool WPImageEffect::FromFileJson(const nlohmann::json& json, fs::VFS& vfs) {
                 fbo.scale = 1;
             }
             fbos.push_back(fbo);
-            passes.at(0).bind.push_back({ "previous", 0 });
-            passes.at(0).target = "_rt_FullCompoBuffer1";
-            passes.at(1).bind.push_back({ "_rt_FullCompoBuffer1", 0 });
+            passes[0].bind.push_back({ "previous", 0 });
+            passes[0].target = "_rt_FullCompoBuffer1";
+            passes[1].bind.push_back({ "_rt_FullCompoBuffer1", 0 });
         }
     } else {
         LOG_ERROR("no passes in effect file");
@@ -157,7 +157,10 @@ bool WPImageObject::FromJson(const nlohmann::json& json, fs::VFS& vfs) {
         } else if (json.contains("size")) {
             GET_JSON_NAME_VALUE(json, "size", size);
         } else {
-            size = { origin.at(0) * 2, origin.at(1) * 2 };
+            if (origin.size() >= 2)
+                size = { origin[0] * 2, origin[1] * 2 };
+            else
+                size = { 0, 0 };
         }
     }
     GET_JSON_NAME_VALUE_NOWARN(jImage, "nopadding", nopadding);

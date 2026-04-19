@@ -56,13 +56,14 @@ public:
     }
 
     void UpdateLinkedCamera(const std::string& name) {
-        if (linkedCameras.count(name) != 0) {
-            auto& cams = linkedCameras.at(name);
-            for (auto& cam : cams) {
-                if (cameras.count(cam) != 0) {
-                    cameras.at(cam)->Clone(*cameras.at(name));
-                    cameras.at(cam)->Update();
-                }
+        if (linkedCameras.count(name) == 0) return;
+        if (cameras.count(name) == 0) return;
+        auto& srcCam = cameras[name];
+        auto& cams   = linkedCameras[name];
+        for (auto& cam : cams) {
+            if (cameras.count(cam) != 0) {
+                cameras[cam]->Clone(*srcCam);
+                cameras[cam]->Update();
             }
         }
     }

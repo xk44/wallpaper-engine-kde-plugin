@@ -23,7 +23,11 @@ Rectangle {
     property bool   noRandomWhilePaused: wallpaper.configuration.NoRandomWhilePaused
     property bool   mouseInput: wallpaper.configuration.MouseInput
     property bool   mpvStats: wallpaper.configuration.MpvStats
+    property bool   sceneStats: wallpaper.configuration.SceneStats
     property string mpvHwdec: wallpaper.configuration.MpvHwdec
+    property int    mpvFpsLimit: wallpaper.configuration.MpvFpsLimit
+    property real   mpvRenderScale: wallpaper.configuration.MpvRenderScale
+    property real   sceneRenderScale: wallpaper.configuration.SceneRenderScale
 
     property bool   pauseOnBatPower: wallpaper.configuration.PauseOnBatPower
     property int    pauseBatPercent: wallpaper.configuration.PauseBatPercent

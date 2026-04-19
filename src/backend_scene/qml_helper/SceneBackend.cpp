@@ -18,6 +18,7 @@
 #include <clocale>
 #include <atomic>
 #include <array>
+#include <algorithm>
 #include <functional>
 
 #include "glExtra.hpp"
@@ -211,13 +212,23 @@ void SceneObject::resizeFb() {
 
 QSGNode* SceneObject::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) {
     TextureNode* node = static_cast<TextureNode*>(oldNode);
+    // renderScale changes require swapchain rebuild — drop old node, recreate.
+    if (node && m_renderScaleDirty) {
+        delete node;
+        node = nullptr;
+        m_renderScaleDirty = false;
+    }
     if (! node) {
         node = new TextureNode(window(), m_scene, m_enable_valid, [this](QQuickWindow* window) {
             return (QSGTexture*)nullptr;
         });
         if (node->initGl()) {
-            node->initVulkan(width() * window()->devicePixelRatio(),
-                             height() * window()->devicePixelRatio());
+            const float scale  = std::clamp(m_renderScale, 0.25f, 1.0f);
+            const float dpr    = window()->devicePixelRatio();
+            const uint16_t scw = (uint16_t)std::max(1, (int)(width() * dpr * scale));
+            const uint16_t sch = (uint16_t)std::max(1, (int)(height() * dpr * scale));
+            _Q_INFO("init scene render target %dx%d (scale=%.2f)", scw, sch, scale);
+            node->initVulkan(scw, sch);
 
             connect(
                 node, &TextureNode::redraw, window(), &QQuickWindow::update, Qt::QueuedConnection);
@@ -248,6 +259,7 @@ QUrl SceneObject::assets() const { return m_assets; }
 int   SceneObject::fps() const { return m_fps; }
 int   SceneObject::fillMode() const { return m_fillMode; }
 float SceneObject::speed() const { return m_speed; }
+float SceneObject::renderScale() const { return m_renderScale; }
 float SceneObject::volume() const { return m_volume; }
 bool  SceneObject::muted() const { return m_muted; }
 
@@ -281,6 +293,14 @@ void SceneObject::setSpeed(float value) {
     m_speed = value;
     SET_PROPERTY(Float, wallpaper::PROPERTY_SPEED, value);
     Q_EMIT speedChanged();
+}
+void SceneObject::setRenderScale(float value) {
+    value = std::clamp(value, 0.25f, 1.0f);
+    if (m_renderScale == value) return;
+    m_renderScale      = value;
+    m_renderScaleDirty = true;
+    update();
+    Q_EMIT renderScaleChanged();
 }
 void SceneObject::setVolume(float value) {
     if (m_volume == value) return;
@@ -318,6 +338,18 @@ void SceneObject::setAcceptMouse(bool value) {
 }
 
 void SceneObject::setAcceptHover(bool value) { setAcceptHoverEvents(value); }
+
+QVariantMap SceneObject::debugMetrics() const {
+    QVariantMap map;
+    if (m_scene) {
+        auto m          = m_scene->debugMetrics();
+        map["frameCount"]  = (qulonglong)m.frameCount;
+        map["frameTimeMs"] = m.frameTimeMs;
+        map["targetFps"]   = m.targetFps;
+        map["running"]     = m.running;
+    }
+    return map;
+}
 
 void SceneObject::mousePressEvent(QMouseEvent* event) {}
 void SceneObject::mouseMoveEvent(QMouseEvent* event) {

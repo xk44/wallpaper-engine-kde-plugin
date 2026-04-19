@@ -301,7 +301,7 @@ struct FrequencyValue {
         if (storage.size() < s) storage.resize(2 * s, StorageRandom {});
     }
     inline void GenFrequency(Particle& p, uint32_t index) {
-        auto& st = storage.at(index);
+        auto& st = storage[index];
         if (! PM::LifetimeOk(p)) st.reset = true;
         if (st.reset) {
             st.frequency = Random::get(frequencymin, frequencymax);
@@ -311,13 +311,13 @@ struct FrequencyValue {
         }
     }
     inline double GetScale(uint32_t index, double time) {
-        const auto& st = storage.at(index);
+        const auto& st = storage[index];
         double      f  = st.frequency / (2.0f * M_PI);
         double      w  = 2.0f * M_PI * f;
         return algorism::lerp((std::cos(w * time + st.phase) + 1.0f) * 0.5f, scalemin, scalemax);
     }
     inline double GetMove(uint32_t index, double time, double timePass) {
-        const auto& st = storage.at(index);
+        const auto& st = storage[index];
         double      f  = st.frequency / (2.0f * M_PI);
         double      w  = 2.0f * M_PI * f;
         return -1.0f * st.scale * w * std::sin(w * time + st.phase) * timePass;

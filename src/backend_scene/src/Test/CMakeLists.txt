@@ -1,8 +1,10 @@
 enable_testing()
 
+get_filename_component(TEST_DIR "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
+get_filename_component(SRC_DIR "${TEST_DIR}/.." ABSOLUTE)
+get_filename_component(BACKEND_SCENE_DIR "${SRC_DIR}/.." ABSOLUTE)
 set(DOCTEST_INCLUDE_DIR
-    "${CMAKE_SOURCE_DIR}/third_party/nlohmann/tests/thirdparty/doctest")
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+    "${BACKEND_SCENE_DIR}/third_party/nlohmann/tests/thirdparty/doctest")
 
 add_executable(backend_scene_tests
     test_main.cpp

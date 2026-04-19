@@ -74,9 +74,29 @@
       <label>Mpv Stats</label>
       <default>false</default>
     </entry>
+    <entry name="SceneStats" type="Bool">
+      <label>Scene Stats</label>
+      <default>false</default>
+    </entry>
     <entry name="MpvHwdec" type="String">
       <label>Mpv Hardware Decode</label>
-      <default>auto</default>
+      <default>auto-copy</default>
+    </entry>
+    <entry name="MpvFpsLimit" type="Int">
+      <label>Mpv FPS limit (0 = no limit)</label>
+      <default>0</default>
+    </entry>
+    <entry name="MpvRenderScale" type="Double">
+      <label>Mpv render resolution scale (0.25-1.0)</label>
+      <default>1.0</default>
+    </entry>
+    <entry name="SceneRenderScale" type="Double">
+      <label>Scene render resolution scale (0.25-1.0)</label>
+      <default>1.0</default>
+    </entry>
+    <entry name="QualityTier" type="Int">
+      <label>Quality tier preset (0=Custom, 1=LowPower, 2=Balanced, 3=High, 4=Native)</label>
+      <default>0</default>
     </entry>
     <entry name="MouseInput" type="Bool">
       <label>Mouse Input</label>

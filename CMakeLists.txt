@@ -18,6 +18,8 @@ endif()
 
 option(USE_PLASMAPKG "Use plasmapkg2 to install plugin to user'home"
        ${USE_PLASMAPKG})
+option(BUILD_MPV "Build MPV video backend" ON)
+option(BUILD_SCENE "Build Scene renderer backend" ON)
 
 set(DEFAULT_BUILD_TYPE "RelWithDebInfo")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -72,10 +74,13 @@ endif()
 set(QMLPLUGIN_URI "com.github.catsout.wallpaperEngineKde")
 string(REPLACE "." "/" QMLPLUGIN_INSTALL_URI ${QMLPLUGIN_URI})
 
-add_subdirectory(src)
-
 option(BUILD_TESTS "Build unit tests (requires only Qt6 Core+Test)" OFF)
 if(BUILD_TESTS)
     enable_testing()
+endif()
+
+add_subdirectory(src)
+
+if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()

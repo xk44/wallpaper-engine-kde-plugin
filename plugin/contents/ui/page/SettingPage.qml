@@ -20,7 +20,13 @@ Flickable {
     property alias cfg_Fps: sliderFps.value
     property alias cfg_Volume: sliderVol.value
     property alias cfg_MpvStats: ckbox_mpvStats.checked
+    property alias cfg_SceneStats: ckbox_sceneStats.checked
     property string cfg_MpvHwdec
+    property alias cfg_MpvFpsLimit: sliderMpvFps.value
+    property alias cfg_MpvRenderScale: sliderMpvScale.value
+    property alias cfg_SceneRenderScale: sliderSceneScale.value
+    property int cfg_QualityTier: 0
+    property bool applyingTierPreset: false
     property alias cfg_Speed: spin_speed.dValue
     property alias cfg_MuteAudio: ckbox_muteAudio.checked
     property alias cfg_MouseInput: ckbox_mouseInput.checked
@@ -55,6 +61,44 @@ Flickable {
             header.text_color: Kirigami.Theme.textColor
             header.icon: '../../images/cheveron-down.svg'
             header.color: Kirigami.Theme.activeBackgroundColor
+
+            OptionItem {
+                text: 'Quality Preset'
+                text_color: Kirigami.Theme.textColor
+                icon: '../../images/tuning.svg'
+                actor: ComboBox {
+                    id: cbox_qualityTier
+                    model: [
+                        { text: "Custom",    value: Common.QualityTier.Custom },
+                        { text: "Low Power", value: Common.QualityTier.LowPower },
+                        { text: "Balanced",  value: Common.QualityTier.Balanced },
+                        { text: "High",      value: Common.QualityTier.High },
+                        { text: "Native",    value: Common.QualityTier.Native }
+                    ]
+                    textRole: "text"
+                    onActivated: {
+                        const tier = Common.cbCurrentValue(this);
+                        cfg_QualityTier = tier;
+                        const preset = Common.qualityTierPresets[tier];
+                        if (preset) {
+                            settingTab.applyingTierPreset = true;
+                            cfg_Fps = preset.fps;
+                            cfg_MpvRenderScale = preset.mpvScale;
+                            cfg_SceneRenderScale = preset.sceneScale;
+                            settingTab.applyingTierPreset = false;
+                        }
+                    }
+                    Component.onCompleted: currentIndex = Common.cbIndexOfValue(this, cfg_QualityTier)
+                }
+                contentBottom: ColumnLayout {
+                    Text {
+                        Layout.fillWidth: true
+                        color: Kirigami.Theme.disabledTextColor
+                        text: "Quick presets for fps + render scale. Adjusting individual sliders below switches to Custom."
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
 
             OptionItem {
                 text: 'Pause'
@@ -335,8 +379,9 @@ Flickable {
                 actor: ComboBox {
                     id: cbox_mpvHwdec
                     model: [
-                        { text: "Auto",     value: "auto" },
-                        { text: "Software", value: "no"   }
+                        { text: "Auto (Copy-back, safest)", value: "auto-copy" },
+                        { text: "Auto (Zero-copy)",         value: "auto"      },
+                        { text: "Software",                 value: "no"        }
                     ]
                     textRole: "text"
                     onActivated: cfg_MpvHwdec = model[currentIndex].value
@@ -347,6 +392,70 @@ Flickable {
                                 break;
                             }
                         }
+                    }
+                }
+            }
+            OptionItem {
+                text: 'FPS Limit'
+                text_color: Kirigami.Theme.textColor
+                icon: '../../images/tuning.svg'
+                visible: cfg_VideoBackend == Common.VideoBackend.Mpv
+                actor: RowLayout {
+                    Label {
+                        Layout.preferredWidth: font.pixelSize * 2
+                        text: sliderMpvFps.value === 0 ? "∞" : sliderMpvFps.value.toString()
+                        color: Kirigami.Theme.textColor
+                    }
+                    Slider {
+                        id: sliderMpvFps
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 60
+                        stepSize: 1.0
+                        snapMode: Slider.SnapOnRelease
+                    }
+                }
+                contentBottom: ColumnLayout {
+                    Text {
+                        Layout.fillWidth: true
+                        color: Kirigami.Theme.disabledTextColor
+                        text: "0 = no limit (match source). Useful for saving GPU on high-fps videos."
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
+            OptionItem {
+                text: 'Render Scale'
+                text_color: Kirigami.Theme.textColor
+                icon: '../../images/tuning.svg'
+                visible: cfg_VideoBackend == Common.VideoBackend.Mpv
+                actor: RowLayout {
+                    Label {
+                        Layout.preferredWidth: font.pixelSize * 3
+                        text: sliderMpvScale.value.toFixed(2)
+                        color: Kirigami.Theme.textColor
+                    }
+                    Slider {
+                        id: sliderMpvScale
+                        Layout.fillWidth: true
+                        from: 0.25
+                        to: 1.0
+                        stepSize: 0.05
+                        snapMode: Slider.SnapOnRelease
+                        onValueChanged: {
+                            if (!settingTab.applyingTierPreset && cfg_QualityTier !== Common.QualityTier.Custom) {
+                                cfg_QualityTier = Common.QualityTier.Custom;
+                                cbox_qualityTier.currentIndex = Common.cbIndexOfValue(cbox_qualityTier, Common.QualityTier.Custom);
+                            }
+                        }
+                    }
+                }
+                contentBottom: ColumnLayout {
+                    Text {
+                        Layout.fillWidth: true
+                        color: Kirigami.Theme.disabledTextColor
+                        text: "Render at fraction of output size, then upscale. Saves GPU on weak hardware. 1.0 = native."
+                        wrapMode: Text.Wrap
                     }
                 }
             }
@@ -377,6 +486,12 @@ Flickable {
                         to: 60
                         stepSize: 1.0
                         snapMode: Slider.SnapOnRelease
+                        onValueChanged: {
+                            if (!settingTab.applyingTierPreset && cfg_QualityTier !== Common.QualityTier.Custom) {
+                                cfg_QualityTier = Common.QualityTier.Custom;
+                                cbox_qualityTier.currentIndex = Common.cbIndexOfValue(cbox_qualityTier, Common.QualityTier.Custom);
+                            }
+                        }
                     }
                 }
                 contentBottom: ColumnLayout {
@@ -387,6 +502,48 @@ Flickable {
                     }
                 }
 
+            }
+            OptionItem {
+                text: 'Render Scale'
+                text_color: Kirigami.Theme.textColor
+                icon: '../../images/tuning.svg'
+                actor: RowLayout {
+                    Label {
+                        Layout.preferredWidth: font.pixelSize * 3
+                        text: sliderSceneScale.value.toFixed(2)
+                        color: Kirigami.Theme.textColor
+                    }
+                    Slider {
+                        id: sliderSceneScale
+                        Layout.fillWidth: true
+                        from: 0.25
+                        to: 1.0
+                        stepSize: 0.05
+                        snapMode: Slider.SnapOnRelease
+                        onValueChanged: {
+                            if (!settingTab.applyingTierPreset && cfg_QualityTier !== Common.QualityTier.Custom) {
+                                cfg_QualityTier = Common.QualityTier.Custom;
+                                cbox_qualityTier.currentIndex = Common.cbIndexOfValue(cbox_qualityTier, Common.QualityTier.Custom);
+                            }
+                        }
+                    }
+                }
+                contentBottom: ColumnLayout {
+                    Text {
+                        Layout.fillWidth: true
+                        color: Kirigami.Theme.disabledTextColor
+                        text: "Render at fraction of output size, then upscale. Saves GPU on heavy scenes. 1.0 = native."
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
+            OptionItem {
+                text: 'Show Scene Stats'
+                text_color: Kirigami.Theme.textColor
+                icon: '../../images/information-outline.svg'
+                actor: Switch {
+                    id: ckbox_sceneStats
+                }
             }
             OptionItem {
                 text: 'Shader cache'

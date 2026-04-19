@@ -175,31 +175,32 @@ private:
     MHANDLER_CMD(DRAW) {
         frame_timer.FrameBegin();
         if (m_rg) {
-            // LOG_INFO("frame info, fps: %.1f, frametime: %.1f", 1.0f, 1000.0f*m_scene->frameTime);
-            m_scene->shaderValueUpdater->FrameBegin();
-            {
-                auto pos = m_mouse_pos.load();
-                m_scene->shaderValueUpdater->MouseInput(pos[0], pos[1]);
+            try {
+                m_scene->shaderValueUpdater->FrameBegin();
+                {
+                    auto pos = m_mouse_pos.load();
+                    m_scene->shaderValueUpdater->MouseInput(pos[0], pos[1]);
 
-                // Update particle control points that follow the mouse
-                auto* wpUpdater =
-                    static_cast<WPShaderValueUpdater*>(m_scene->shaderValueUpdater.get());
-                auto mousePos = wpUpdater->GetMousePosition();
-                m_scene->paritileSys->UpdateMouseControlPoints(
-                    mousePos, { m_scene->ortho[0], m_scene->ortho[1] });
-            }
-            m_scene->paritileSys->Emitt();
+                    auto* wpUpdater =
+                        static_cast<WPShaderValueUpdater*>(m_scene->shaderValueUpdater.get());
+                    auto mousePos = wpUpdater->GetMousePosition();
+                    m_scene->paritileSys->UpdateMouseControlPoints(
+                        mousePos, { m_scene->ortho[0], m_scene->ortho[1] });
+                }
+                m_scene->paritileSys->Emitt();
 
-            m_render->drawFrame(*m_scene);
+                m_render->drawFrame(*m_scene);
 
-            m_scene->PassFrameTime(frame_timer.IdeaTime() * m_speed);
+                m_scene->PassFrameTime(frame_timer.IdeaTime() * m_speed);
 
-            m_scene->shaderValueUpdater->FrameEnd();
-            // fps_counter.RegisterFrame();
+                m_scene->shaderValueUpdater->FrameEnd();
 
-            if (! m_scene->first_frame_ok) {
-                m_scene->first_frame_ok = true;
-                main_handler.sendFirstFrameOk();
+                if (! m_scene->first_frame_ok) {
+                    m_scene->first_frame_ok = true;
+                    main_handler.sendFirstFrameOk();
+                }
+            } catch (const std::exception& e) {
+                LOG_ERROR("Draw frame exception: %s", e.what());
             }
         }
         frame_timer.FrameEnd();
@@ -215,22 +216,30 @@ private:
     }
     MHANDLER_CMD(SET_SCENE) {
         if (msg->findObject("scene", &m_scene)) {
-            if (m_rg) m_render->clearLastRenderGraph();
-            m_rg = sceneToRenderGraph(*m_scene);
+            try {
+                if (m_rg) m_render->clearLastRenderGraph();
+                m_rg = sceneToRenderGraph(*m_scene);
 
-            if (main_handler.isGenGraphviz()) m_rg->ToGraphviz("graph.dot");
-            m_render->compileRenderGraph(*m_scene, *m_rg);
-            m_render->UpdateCameraFillMode(*m_scene, m_fillmode);
+                if (main_handler.isGenGraphviz()) m_rg->ToGraphviz("graph.dot");
+                m_render->compileRenderGraph(*m_scene, *m_rg);
+                m_render->UpdateCameraFillMode(*m_scene, m_fillmode);
+            } catch (const std::exception& e) {
+                LOG_ERROR("Set scene failed: %s", e.what());
+                m_scene = nullptr;
+                m_rg    = nullptr;
+            }
         }
     }
     MHANDLER_CMD(SET_SPEED) { msg->findFloat("value", &m_speed); }
     MHANDLER_CMD(INIT_VULKAN) {
         std::shared_ptr<RenderInitInfo> info;
         if (msg->findObject("info", &info)) {
-            m_render->init(*info);
-
-            // inited, callback to laod scene
-            main_handler.sendCmdLoadScene();
+            try {
+                m_render->init(*info);
+                main_handler.sendCmdLoadScene();
+            } catch (const std::exception& e) {
+                LOG_ERROR("Vulkan init failed: %s", e.what());
+            }
         }
     }
 
@@ -310,6 +319,19 @@ BASIC_TYPE(Object, std::shared_ptr<void>);
 
 ExSwapchain* SceneWallpaper::exSwapchain() const {
     return m_main_handler->renderHandler()->exSwapchain();
+}
+
+SceneWallpaper::Metrics SceneWallpaper::debugMetrics() const {
+    Metrics m;
+    auto rh = m_main_handler->renderHandler();
+    if (rh) {
+        auto& ft      = rh->frame_timer;
+        m.frameCount  = ft.FrameCount();
+        m.frameTimeMs = ft.FrameTime() * 1000.0;
+        m.targetFps   = ft.RequiredFps();
+        m.running     = ft.Running();
+    }
+    return m;
 }
 
 MHANDLER_CMD_IMPL(MainHandler, LOAD_SCENE) {
@@ -466,8 +488,41 @@ void MainHandler::loadScene() {
             LOG_ERROR("Not supported scene type");
             return;
         }
-        scene = m_scene_parser.Parse(scene_id, scene_src, vfs, *m_sound_manager, m_user_props_json);
+        try {
+            scene = m_scene_parser.Parse(
+                scene_id, scene_src, vfs, *m_sound_manager, m_user_props_json);
+        } catch (const std::exception& e) {
+            LOG_ERROR("Scene parse failed: %s", e.what());
+            return;
+        }
+        if (! scene) {
+            LOG_ERROR("Scene parse returned null");
+            return;
+        }
         scene->vfs.swap(pVfs);
+    }
+
+    // Pre-render validation: catch malformed packages before handing off to the render thread.
+    // The render path assumes these invariants and would otherwise log errors mid-frame and
+    // leave the renderer in a partially-initialized state.
+    {
+        if (! scene->sceneGraph) {
+            LOG_ERROR("Scene rejected: missing sceneGraph root (%s)", m_source.c_str());
+            return;
+        }
+        if (scene->cameras.empty()) {
+            LOG_ERROR("Scene rejected: no cameras defined (%s)", m_source.c_str());
+            return;
+        }
+        if (scene->cameras.count("global") == 0) {
+            LOG_ERROR("Scene rejected: missing 'global' camera (%s)", m_source.c_str());
+            return;
+        }
+        if (scene->cameras.count("global_perspective") == 0) {
+            LOG_ERROR("Scene rejected: missing 'global_perspective' camera (%s)",
+                      m_source.c_str());
+            return;
+        }
     }
 
     {
